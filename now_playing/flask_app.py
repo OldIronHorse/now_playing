@@ -37,5 +37,8 @@ def library_artists():
   server = connect('euterpe3')
   artists = get_artists(server)
   server.close()
-  #TODO: make the json presentation nice
-  return jsonify(artists)
+  return jsonify([artist._asdict() for artist in artists])
+
+#@app.after_request
+#def add_cache_control(response):
+  #response.cache_control.max_age = 300
