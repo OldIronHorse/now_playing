@@ -39,6 +39,7 @@ def library_artists():
   server.close()
   return jsonify([artist._asdict() for artist in artists])
 
-#@app.after_request
-#def add_cache_control(response):
-  #response.cache_control.max_age = 300
+#TODO: cache library at startup and cache in python dictionaries
+#TODO: index library cache
+#TODO: mark all library query results as cacheable
+#TODO: What (if any) cacheing is appropriate for player and playlist queries?
