@@ -38,4 +38,4 @@ def library_artists():
   artists = get_artists(server)
   server.close()
   #TODO: make the json presentation nice
-  return jsonify(artists)
+  return jsonify([artist._asdict() for artist in artists])
