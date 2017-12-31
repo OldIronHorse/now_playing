@@ -37,5 +37,9 @@ def library_artists():
   server = connect('euterpe3')
   artists = get_artists(server)
   server.close()
-  #TODO: make the json presentation nice
   return jsonify([artist._asdict() for artist in artists])
+
+#TODO: cache library at startup and cache in python dictionaries
+#TODO: index library cache
+#TODO: mark all library query results as cacheable
+#TODO: What (if any) cacheing is appropriate for player and playlist queries?
