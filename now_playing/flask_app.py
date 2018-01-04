@@ -1,5 +1,7 @@
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash
-from juice import connect, get_players, get_playing_track, get_artists
+from flask import Flask, jsonify, render_template, request, session, redirect,\
+  url_for, flash
+from juice import connect, get_players, get_playing_track, get_artists, state,\
+  play, pause, get_player_name
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -22,7 +24,6 @@ def show_players():
 def login():
   error = None
   if request.method == 'POST':
-    print(repr(request.form))
     if request.form['username'] != app.config['USERNAME'] \
         or request.form['password'] != app.config['PASSWORD']:
       error = 'Invalid credentials'
@@ -37,6 +38,25 @@ def logout():
   session.pop('logged_in',None)
   flash('You were logged out')
   return redirect(url_for('show_players'))
+
+@app.route('/player/<player_id>')
+def player(player_id):
+  action = request.args.get('action')
+  if action:
+    actions = {'play': play, 'pause': pause}
+    server = connect(app.config['SERVER'])
+    actions[action](server, player_id)
+    server.close()
+    return redirect(url_for('player', player_id=player_id))
+  else:
+    server = connect(app.config['SERVER'])
+    name = get_player_name(server, player_id)
+    track = get_playing_track(server, player_id)
+    player_state = state(server, player_id)
+    available_action = {'play': 'pause', 'pause': 'play', 'stop': 'play'}
+    server.close()
+    return render_template('player.html', track=track, player_name=name,
+      player_id=player_id, action=available_action[player_state])
 
 ### Start service POC ###
 

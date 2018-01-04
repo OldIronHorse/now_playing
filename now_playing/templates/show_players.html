@@ -2,7 +2,7 @@
 {% block body %}
   <ul class=players>
     {% for player in players %}
-      <li><h2>{{ player.name }}</h2>{{ player.id}}o
+      <li><h2><a href="/player/{{ player.id }}">{{ player.name }}</a></h2>
     {% else %}
       <li><em>No players found.</em>
     {% endfor %}
