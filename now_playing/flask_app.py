@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template, request, session, redirect,\
   url_for, flash
 from juice import connect, get_players, get_playing_track, get_artists, state,\
-  play, pause, get_player_name
+  play, pause, get_player_name, get_current_playlist
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -53,10 +53,12 @@ def player(player_id):
     name = get_player_name(server, player_id)
     track = get_playing_track(server, player_id)
     player_state = state(server, player_id)
-    available_action = {'play': 'pause', 'pause': 'play', 'stop': 'play'}
+    playlist = get_current_playlist(server, player_id)
     server.close()
+    available_action = {'play': 'pause', 'pause': 'play', 'stop': 'play'}
     return render_template('player.html', track=track, player_name=name,
-      player_id=player_id, action=available_action[player_state])
+      player_id=player_id, action=available_action[player_state],
+      playlist=playlist)
 
 ### Start service POC ###
 

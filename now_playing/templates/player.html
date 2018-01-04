@@ -1,17 +1,18 @@
 {% extends 'layout.html' %}
 {% block body %}
-<h2>{{ player_name }}</h2>
+<h2>{{ player_name }}: <a href="/player/{{ player_id }}?action={{ action }}">{{ action }}<a></h2>
 <table>
   <tr>
     <th>Title</th>
     <th>Album</th>
     <th>Artist</th>
   </tr>
-  <tr>
-    <td>{{ track.title }}</td>
-    <td>{{ track.album }}</td>
-    <td>{{ track.artist }}</td>
-    <td><a href="/player/{{ player_id }}?action={{ action }}">{{ action }}<td>
-  </tr>
+  {% for t in playlist %}
+    <tr>
+      <td>{{ t.title }}</td>
+      <td>{{ t.album }}</td>
+      <td>{{ t.artist }}</td>
+    </tr>
+  {% endfor %}
 </table>
 {% endblock %}
