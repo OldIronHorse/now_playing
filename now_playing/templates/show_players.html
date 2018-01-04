@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+{% block body %}
+  <ul class=players>
+    {% for player in players %}
+      <li><h2>{{ player.name }}</h2>{{ player.id}}o
+    {% else %}
+      <li><em>No players found.</em>
+    {% endfor %}
+  </ul>
+{% endblock %}
