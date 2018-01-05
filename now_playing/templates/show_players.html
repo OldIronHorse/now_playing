@@ -1,10 +1,58 @@
 {% extends 'layout.html' %}
 {% block body %}
-  <ul class=players>
+<body onload="player_states()">
+  <script>
+    function play_pause(player_id){
+      var b = document.getElementById(player_id);
+      var request = new XMLHttpRequest();
+      request.onload = function(){
+        if(JSON.parse(request.responseText)['state'] == 'play'){
+          b.innerHTML = 'pause';
+        }else{
+          b.innerHTML = 'play';
+        }
+      }
+      var postData ={};
+      if(b.innerHTML == "play"){
+        postData['state'] = "play";
+        //b.innerHTML = "Pause";
+      }else{
+        postData['state'] = "pause";
+        //b.innerHTML = "Play";
+      }
+      request.open("POST","/players/" + player_id,true);
+      request.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+      request.send(JSON.stringify(postData));
+    }
+    function player_states(){
+      {% for player in players %}
+        player_state('{{ player.id }}')
+      {% endfor %}
+    }
+    function player_state(player_id){
+      var b = document.getElementById(player_id);
+      var request = new XMLHttpRequest();
+      request.onload = function(){
+        if(JSON.parse(request.responseText)['state'] == 'play'){
+          b.innerHTML = 'pause';
+        }else{
+          b.innerHTML = 'play';
+        }
+      }
+      request.open("GET","/players/" + player_id,true);
+      request.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+      request.send();
+    }
+  </script>
+  <table class=players>
     {% for player in players %}
-      <li><h2><a href="/player/{{ player.id }}">{{ player.name }}</a></h2>
+      <tr>
+        <td><h2><a href="/player/{{ player.id }}">{{ player.name }}</a></h2><td>
+        <td><button id="{{ player.id }}" type="button" onclick="play_pause('{{ player.id }}')">...</button></td>
+      </tr>
     {% else %}
       <li><em>No players found.</em>
     {% endfor %}
-  </ul>
+  </table>
+<body>
 {% endblock %}

@@ -62,6 +62,18 @@ def player(player_id):
 
 ### Start service POC ###
 
+@app.route('/players/<player_id>', methods=['GET','POST'])
+def player_state(player_id):
+  server = connect(app.config['SERVER'])
+  if request.method == 'POST':
+    new_state = request.get_json()
+    actions = {'play': play, 'pause': pause}
+    actions[new_state['state']](server, player_id)
+  player_state = state(server, player_id)
+  server.close()
+  return jsonify({'state': player_state})
+    
+
 @app.route('/players')
 def players():
   server = connect(app.config['SERVER'])
