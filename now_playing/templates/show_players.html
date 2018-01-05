@@ -6,21 +6,15 @@
       var b = document.getElementById(player_id);
       var request = new XMLHttpRequest();
       request.onload = function(){
-        if(JSON.parse(request.responseText)['state'] == 'play'){
-          b.innerHTML = 'pause';
-        }else{
-          b.innerHTML = 'play';
-        }
+        render_player(JSON.parse(request.responseText));
       }
       var postData ={};
       if(b.innerHTML == "play"){
         postData['state'] = "play";
-        //b.innerHTML = "Pause";
       }else{
         postData['state'] = "pause";
-        //b.innerHTML = "Play";
       }
-      request.open("POST","/players/" + player_id,true);
+      request.open("PATCH","/players/" + player_id,true);
       request.setRequestHeader("Content-Type","application/json;charset=UTF-8");
       request.send(JSON.stringify(postData));
     }
@@ -31,24 +25,52 @@
     }
     function player_state(player_id){
       var b = document.getElementById(player_id);
+      var v = document.getElementById(player_id + "-volume");
       var request = new XMLHttpRequest();
       request.onload = function(){
-        if(JSON.parse(request.responseText)['state'] == 'play'){
-          b.innerHTML = 'pause';
-        }else{
-          b.innerHTML = 'play';
-        }
+        render_player(JSON.parse(request.responseText));
       }
       request.open("GET","/players/" + player_id,true);
       request.setRequestHeader("Content-Type","application/json;charset=UTF-8");
       request.send();
     }
+    function volume(player_id,vol){
+      var v = document.getElementById(player_id + "-volume");
+      var request = new XMLHttpRequest();
+      request.onload = function(){
+        render_player(JSON.parse(request.responseText));
+      }
+      var postData = {};
+      postData['volume'] = vol;
+      request.open("PATCH","/players/" + player_id,true);
+      request.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+      request.send(JSON.stringify(postData));
+    }
+    function render_player(state){
+      var player_id = state['id'];
+      var track = state['current_track'];
+      document.getElementById(player_id + '-current-title').innerHTML = track['title'];
+      document.getElementById(player_id + '-current-album').innerHTML = track['album'];
+      document.getElementById(player_id + '-current-artist').innerHTML = track['artist'];
+      document.getElementById(player_id + '-volume').innerHTML = state['volume'];
+      var action = 'play';
+      if(state['state']== 'play'){
+        action = 'pause';
+      }
+      document.getElementById(player_id + '-action').innerHTML = action;
+    }
   </script>
   <table class=players>
     {% for player in players %}
       <tr>
-        <td><h2><a href="/player/{{ player.id }}">{{ player.name }}</a></h2><td>
-        <td><button id="{{ player.id }}" type="button" onclick="play_pause('{{ player.id }}')">...</button></td>
+        <td><a href="/player/{{ player.id }}">{{ player.name }}</a><td>
+        <td id="{{ player.id }}-current-title">.</td>
+        <td id="{{ player.id }}-current-album">.</td>
+        <td id="{{ player.id }}-current-artist">.</td>
+        <td><button id="{{ player.id }}-action" type="button" onclick="play_pause('{{ player.id }}')">...</button></td>
+        <td><button type="button" onclick="volume('{{ player.id }}', '-5')">&lt;</button></td>
+        <td id="{{ player.id }}-volume">.</td>
+        <td><button type="button" onclick="volume('{{ player.id }}', '+5')">&gt;</button></td>
       </tr>
     {% else %}
       <li><em>No players found.</em>

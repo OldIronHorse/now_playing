@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, render_template, request, session, redirect,\
   url_for, flash
 from juice import connect, get_players, get_playing_track, get_artists, state,\
-  play, pause, get_player_name, get_current_playlist
+  play, pause, get_player_name, get_current_playlist, get_player_volume,\
+  set_player_volume
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -62,16 +63,32 @@ def player(player_id):
 
 ### Start service POC ###
 
-@app.route('/players/<player_id>', methods=['GET','POST'])
+@app.route('/players/<player_id>', methods=['GET','PATCH'])
 def player_state(player_id):
   server = connect(app.config['SERVER'])
-  if request.method == 'POST':
+  if request.method == 'PATCH':
     new_state = request.get_json()
     actions = {'play': play, 'pause': pause}
-    actions[new_state['state']](server, player_id)
+    try:
+      actions[new_state['state']](server, player_id)
+    except KeyError:
+      pass
+    try:
+      set_player_volume(server, player_id, new_state['volume'])
+    except KeyError:
+      pass
+  player_name = get_player_name(server, player_id)
+  current_track = get_playing_track(server, player_id)
   player_state = state(server, player_id)
+  player_volume = get_player_volume(server, player_id)
   server.close()
-  return jsonify({'state': player_state})
+  return jsonify({'state': player_state,
+                  'volume': player_volume,
+                  'name': player_name,
+                  'id': player_id,
+                  'current_track':{'title': current_track.title,
+                                   'album': current_track.album,
+                                   'artist': current_track.artist}})
     
 
 @app.route('/players')
