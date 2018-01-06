@@ -63,6 +63,7 @@
   <table class=players>
     {% for player in players %}
       <tr>
+        <td><button type="button">v</button></td>
         <td><a href="/player/{{ player.id }}">{{ player.name }}</a><td>
         <td id="{{ player.id }}-current-title">.</td>
         <td id="{{ player.id }}-current-album">.</td>
