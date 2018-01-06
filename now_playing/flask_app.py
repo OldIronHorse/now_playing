@@ -10,6 +10,8 @@ app.config.from_object(__name__)
 app.config.update(dict(
   SECRET_KEY='develeopment key',
   SERVER='euterpe3',
+  MQTT_BROKER_HOST='euterpe3',
+  MQTT_BROKER_PORT=1884,
   USERNAME='default',
   PASSWORD='password'))
 app.config.from_envvar('NOW_PLAYING_SETTINGS', silent=True)
@@ -60,6 +62,12 @@ def player(player_id):
     return render_template('player.html', track=track, player_name=name,
       player_id=player_id, action=available_action[player_state],
       playlist=playlist)
+
+@app.route('/mqtt')
+def mqtt_poc():
+  return render_template('mqtt_poc.html', 
+                          mqtt_broker_host=app.config['MQTT_BROKER_HOST'],
+                          mqtt_broker_port=app.config['MQTT_BROKER_PORT'])
 
 ### Start service POC ###
 
