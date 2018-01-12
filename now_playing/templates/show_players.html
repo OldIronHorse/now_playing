@@ -3,7 +3,7 @@
 <body onload="player_states()">
   <script>
     function play_pause(player_id){
-      var b = document.getElementById(player_id);
+      var b = document.getElementById(player_id + "-action");
       var request = new XMLHttpRequest();
       request.onload = function(){
         render_player(JSON.parse(request.responseText));
@@ -24,7 +24,7 @@
       {% endfor %}
     }
     function player_state(player_id){
-      var b = document.getElementById(player_id);
+      var b = document.getElementById(player_id + "-action");
       var v = document.getElementById(player_id + "-volume");
       var request = new XMLHttpRequest();
       request.onload = function(){

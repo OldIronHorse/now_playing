@@ -9,7 +9,8 @@ setup(name='now_playing',
       license='GPL 3.0',
       packages=['now_playing'],
       install_requires=[
-        'flask'
+        'flask',
+        'juice'
       ],
       test_suite='nose.collector',
       tests_require=['nose'],
