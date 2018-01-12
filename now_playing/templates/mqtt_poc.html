@@ -51,6 +51,18 @@
     mqtt.send(msg);
   }
 
+  function expand_collapse(player_id){
+    var row_playlist = document.getElementById('playlist-row-' + player_id);
+    var row_player = document.getElementById('player-row-' + player_id);
+    if(row_playlist.style.display === 'none'){
+      row_playlist.style.display = '';
+      row_player.cells[0].children[0].innerHTML = '^';
+    }else{
+      row_playlist.style.display = 'none';
+      row_player.cells[0].children[0].innerHTML = 'v';
+    }
+  }
+
   function renderPlayer(json_player){
     console.log('renderPlayer:', json_player);
     var row_player = document.getElementById('player-row-' + json_player.id);
@@ -61,32 +73,40 @@
       var table_players = document.getElementById('players-table');
       row_player = table_players.insertRow(0);
       row_player.id = 'player-row-' + json_player.id;
-      row_player.innerHTML = '<td/><td/><td/><td/><td/>' +
+      row_player.innerHTML = '<td><button type="button" onclick="expand_collapse(\'' + json_player.id + '\')">v</button></td>' +
+        '<td/><td/><td/><td/><td/>' +
         '<td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'volume_dec\')">&lt;</button>' +
         '</td>' + 
         '<td/><td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'volume_inc\')">&gt;</button></td>'
-      /*
-      for(i = 0; i < 5; i++){
-        console.log('adding cell', i);
-        var cell_name = row_player.insertCell(0);
-      }
-      */
+      var row_playlist = table_players.insertRow(1);
+      row_playlist.innerHTML = '<td/><td/><td colspan="3"><table id="playlist-table-' + json_player.id + '"/></td>';
+      row_playlist.id = 'playlist-row-' + json_player.id;
+      row_playlist.style.display = 'none';
     }
     // update row in place
-    row_player.cells[0].innerHTML = json_player.name;
-    row_player.cells[1].innerHTML = json_player.track;
-      row_player.cells[2].innerHTML = json_player.artist;
+    row_player.cells[1].innerHTML = json_player.name;
+    row_player.cells[2].innerHTML = json_player.track;
+      row_player.cells[3].innerHTML = json_player.artist;
     if(json_player.album){
-      row_player.cells[3].innerHTML = json_player.album;
+      row_player.cells[4].innerHTML = json_player.album;
     }else{
-      row_player.cells[3].innerHTML = json_player.title;
+      row_player.cells[4].innerHTML = json_player.title;
     }
     var action = 'play';
     if('play' == json_player.mode){
       action = 'pause';
     }
-    row_player.cells[4].innerHTML = '<td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'' + action + '\')">' + action + '</button></td>'
-    row_player.cells[6].innerHTML = json_player.volume;
+    row_player.cells[5].innerHTML = '<td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'' + action + '\')">' + action + '</button></td>'
+    row_player.cells[7].innerHTML = json_player.volume;
+    // update playlist
+    var table_playlist = document.getElementById('playlist-table-' + json_player.id);
+    for(var i = 1; i < json_player.playlist.length; i++){
+      var row_playlist = table_playlist.insertRow(i - 1);
+      row_playlist.innerHTML = '<td/><td/><td/>';
+      row_playlist.cells[0].innerHTML = json_player.playlist[i].title;
+      row_playlist.cells[1].innerHTML = json_player.playlist[i].artist;
+      row_playlist.cells[2].innerHTML = json_player.playlist[i].album;
+    }
   }
 </script>
 <body>
