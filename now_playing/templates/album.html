@@ -6,7 +6,10 @@
   </div>
   <div class="library-nav">
     {% for track in tracks %}
-      <a href="/library/track/{{ track.id }}">{{ track.title}}</a><br/>
+      <a href="/library/track/{{ track.id }}">{{ track.title}}</a>
+      <button type="button" onclick="add_track({{ track.id }})">add</button>
+      <button type="button" onclick="play_next({{ track.id }})">play next</button>
+      <br/>
     {% endfor %}
 </body>
 {% endblock %}

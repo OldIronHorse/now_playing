@@ -75,7 +75,10 @@
       row_player = table_players.insertRow(0);
       row_player.id = 'player-row-' + json_player.id;
       row_player.innerHTML = '<td><button type="button" onclick="expand_collapse(\'' + json_player.id + '\')">v</button></td>' +
-        '<td/><td/><td/><td/><td/>' +
+        '<td/><td/><td/><td/>' +
+        '<td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'track_previous\')">|&lt;</button></td>' +
+        '<td/>' +
+        '<td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'track_next\')">&gt;|</button></td>' +
         '<td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'volume_dec\')">&lt;</button>' +
         '</td>' + 
         '<td/><td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'volume_inc\')">&gt;</button></td>'
@@ -97,8 +100,8 @@
     if('play' == json_player.mode){
       action = 'pause';
     }
-    row_player.cells[5].innerHTML = '<td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'' + action + '\')">' + action + '</button></td>'
-    row_player.cells[7].innerHTML = json_player.volume;
+    row_player.cells[6].innerHTML = '<td><button type="button" onclick="player_command(\'' + json_player.id + '\', \'' + action + '\')">' + action + '</button></td>'
+    row_player.cells[9].innerHTML = json_player.volume;
     // update playlist
     var table_playlist = document.getElementById('playlist-table-' + json_player.id);
     table_playlist.innerHTML = '';
