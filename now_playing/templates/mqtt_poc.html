@@ -10,6 +10,7 @@
   function onConnect(){
     console.log("Connected");
     mqtt.subscribe("squeezebox/players/+");
+    // TODO: replace *-get with web service call?
     var message = new Paho.MQTT.Message("");
     message.destinationName = "squeezebox/players-get";
     mqtt.send(message);
@@ -100,6 +101,7 @@
     row_player.cells[7].innerHTML = json_player.volume;
     // update playlist
     var table_playlist = document.getElementById('playlist-table-' + json_player.id);
+    table_playlist.innerHTML = '';
     for(var i = 1; i < json_player.playlist.length; i++){
       var row_playlist = table_playlist.insertRow(i - 1);
       row_playlist.innerHTML = '<td/><td/><td/>';

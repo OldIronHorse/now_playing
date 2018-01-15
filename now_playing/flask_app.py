@@ -2,7 +2,7 @@ from flask import Flask, jsonify, render_template, request, session, redirect,\
   url_for, flash
 from juice import connect, get_players, get_playing_track, get_artists, state,\
   play, pause, get_player_name, get_current_playlist, get_player_volume,\
-  set_player_volume
+  set_player_volume, get_albums, get_tracks
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -68,6 +68,37 @@ def mqtt_poc():
   return render_template('mqtt_poc.html', 
                           mqtt_broker_host=app.config['MQTT_BROKER_HOST'],
                           mqtt_broker_port=app.config['MQTT_BROKER_PORT'])
+
+@app.route('/library')
+def library_page():
+  return render_template('library.html')
+
+@app.route('/library/artists')
+def artists_page():
+  server = connect(app.config['SERVER'])
+  artists = get_artists(server)
+  server.close()
+  return render_template('artists.html',
+                         artists=artists)
+
+@app.route('/library/artists/<artist_id>')
+def artist_page(artist_id):
+  server = connect(app.config['SERVER'])
+  artist = get_artists(server, artist_id=artist_id)[0]
+  albums = get_albums(server, artist_id=artist_id)
+  server.close()
+  return render_template('artist.html', albums=albums, artist=artist)
+
+@app.route('/library/albums/<album_id>')
+def album_page(album_id):
+  server = connect(app.config['SERVER'])
+  album = get_albums(server, album_id=album_id)[0]
+  print(album)
+  artist = get_artists(server, artist_id=album['artist_id'])[0]
+  tracks = get_tracks(server, album_id=album_id)
+  print(tracks)
+  server.close()
+  return render_template('album.html', artist=artist, album=album, tracks=tracks)
 
 ### Start service POC ###
 
