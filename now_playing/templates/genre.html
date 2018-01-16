@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block body %}
+<body>
+  <div class=breadcrumb>
+    <a href="../library">Library</a> &gt; 
+    <a href="../library/genres">Genres</a> &gt; 
+    {{ genre.name }}
+  </div>
+  <div class="library-nav">
+    {% for artist in artists %}
+      <a href="/library/artists/{{ artist.id }}">{{ artist.name }}</a><br/>
+    {% endfor %}
+</body>
+{% endblock %}
+

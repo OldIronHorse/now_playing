@@ -2,7 +2,7 @@ from flask import Flask, jsonify, render_template, request, session, redirect,\
   url_for, flash
 from juice import connect, get_players, get_playing_track, get_artists, state,\
   play, pause, get_player_name, get_current_playlist, get_player_volume,\
-  set_player_volume, get_albums, get_tracks
+  set_player_volume, get_albums, get_tracks, get_genres, get_years
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -89,17 +89,73 @@ def artist_page(artist_id):
   server.close()
   return render_template('artist.html', albums=albums, artist=artist)
 
+@app.route('/library/albums')
+def albums_page():
+  server = connect(app.config['SERVER'])
+  albums = get_albums(server)
+  server.close()
+  return render_template('albums.html', albums=albums)
+
 @app.route('/library/albums/<album_id>')
 def album_page(album_id):
   server = connect(app.config['SERVER'])
   album = get_albums(server, album_id=album_id)[0]
-  print(album)
   artist = get_artists(server, artist_id=album['artist_id'])[0]
   tracks = get_tracks(server, album_id=album_id)
-  print(tracks)
+  tracks.sort(key=lambda track: track['tracknum'])
   server.close()
   return render_template('album.html', artist=artist, album=album, tracks=tracks)
 
+@app.route('/library/tracks')
+def tracks_page():
+  server = connect(app.config['SERVER'])
+  tracks = get_tracks(server)
+  server.close()
+  return render_template('tracks.html', tracks=tracks)
+
+@app.route('/library/tracks/<track_id>')
+def track_page(track_id):
+  server = connect(app.config['SERVER'])
+  track = get_tracks(server, track_id=track_id)[0]
+  server.close()
+  return render_template('track.html', track=track)
+  
+@app.route('/library/genres')
+def genres_page():
+  server = connect(app.config['SERVER'])
+  genres = get_genres(server)
+  server.close()
+  return render_template('genres.html', genres=genres)
+  
+@app.route('/library/genres/<genre_id>')
+def genre_page(genre_id):
+  server = connect(app.config['SERVER'])
+  genre = [g for g in get_genres(server) if g['id'] == int(genre_id)][0]
+  artists = get_artists(server, genre_id=genre_id)
+  server.close()
+  return render_template('genre.html', genre=genre, artists=artists)
+
+@app.route('/library/years')
+def years_page():
+  server = connect(app.config['SERVER'])
+  years = get_years(server)
+  server.close()
+  return render_template('years.html', years=years)
+
+@app.route('/library/years/<year>')
+def year_page(year):
+  server = connect(app.config['SERVER'])
+  albums = get_albums(server, year=year)
+  server.close()
+  return render_template('year.html', year=year, albums=albums)
+
+@app.route('/library/new music')
+def new_music_page():
+  server = connect(app.config['SERVER'])
+  albums = get_albums(server, sort='new')
+  server.close()
+  return render_template('new_music.html', albums=albums)
+  
 ### Start service POC ###
 
 @app.route('/players/<player_id>', methods=['GET','PATCH'])

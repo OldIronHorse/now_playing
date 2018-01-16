@@ -2,11 +2,13 @@
 {% block body %}
 <body>
   <div class=breadcrumb>
-    <a href="../library">Library</a> &gt; Artists
+    <a href="../library">Library</a> &gt; Years
   </div>
   <div class="library-nav">
-    {% for artist in artists %}
-      <a href="artists/{{ artist.id }}">{{ artist.name }}</a><br/>
+    {% for year in years %}
+      <a href="years/{{ year }}">{{ year }}</a><br/>
     {% endfor %}
 </body>
 {% endblock %}
+
+

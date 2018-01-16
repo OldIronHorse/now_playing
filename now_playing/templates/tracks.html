@@ -2,15 +2,13 @@
 {% block body %}
 <body>
   <div class=breadcrumb>
-    <a href="/library">Library</a> &gt; 
-    <a href="/library/artists">Artists</a> &gt; 
-    <a href="/library/artists/{{ artist.id }}">{{ artist.name }}</a> &gt; 
-    {{ album.name }}
+    <a href="/library">Library</a> &gt; Tracks
   </div>
   <div class="library-nav">
     {% for track in tracks %}
-      {{ track.tracknum }}
-      <a href="/library/track/{{ track.id }}">{{ track.title}}</a>
+      <a href="/library/tracks/{{ track.id }}">{{ track.title}}</a>
+      {{ track.album }}
+      {{ track.artist }}
       <button type="button" onclick="play_now({{ track.id }})">play</button>
       <button type="button" onclick="add_track({{ track.id }})">add</button>
       <button type="button" onclick="play_next({{ track.id }})">play next</button>
@@ -18,4 +16,5 @@
     {% endfor %}
 </body>
 {% endblock %}
+
 

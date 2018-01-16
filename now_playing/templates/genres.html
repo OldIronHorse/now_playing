@@ -2,11 +2,12 @@
 {% block body %}
 <body>
   <div class=breadcrumb>
-    <a href="../library">Library</a> &gt; Artists
+    <a href="../library">Library</a> &gt; Genres
   </div>
   <div class="library-nav">
-    {% for artist in artists %}
-      <a href="artists/{{ artist.id }}">{{ artist.name }}</a><br/>
+    {% for genre in genres %}
+      <a href="genres/{{ genre.id }}">{{ genre.name }}</a><br/>
     {% endfor %}
 </body>
 {% endblock %}
+

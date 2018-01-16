@@ -2,9 +2,7 @@
 {% block body %}
 <body>
   <div class=breadcrumb>
-    <a href="/library">Library</a> &gt; 
-    <a href="/library/artists">Artists</a> &gt; 
-    {{ artist.name }} 
+    <a href="/library">Library</a> &gt; Albums
   </div>
   <div class="library-nav">
     {% for album in albums %}
@@ -16,3 +14,4 @@
     {% endfor %}
 </body>
 {% endblock %}
+

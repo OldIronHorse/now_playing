@@ -3,12 +3,12 @@
 <body>
   <div class=breadcrumb>
     <a href="/library">Library</a> &gt; 
-    <a href="/library/artists">Artists</a> &gt; 
-    {{ artist.name }} 
+    New Music
   </div>
   <div class="library-nav">
     {% for album in albums %}
       <a href="/library/albums/{{ album.id }}">{{ album.name }}</a>
+      <a href="/library/artists/{{ album.artist_id }}">{{ album.artist }}</a>
       <button type="button" onclick="play_now({{ album.id }})">play</button>
       <button type="button" onclick="add_album({{ album.id }})">add</button>
       <button type="button" onclick="play_next({{ album.id }})">play next</button>
