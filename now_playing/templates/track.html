@@ -8,9 +8,9 @@
     {{ track.title }}
   </div>
   <div class="library-nav">
-    <a href="/library/track/{{ track.id }}">{{ track.title}}</a>
-    {{ track.album }}
-    {{ track.artist }}
+    {{ track.title}}
+    <a href="/library/albums/{{ track.album_id }}">{{ track.album}}</a>
+    <a href="/library/artists/{{ track.artist_id }}">{{ track.artist}}</a>
     <button type="button" onclick="play_now({{ track.id }})">play</button>
     <button type="button" onclick="add_track({{ track.id }})">add</button>
     <button type="button" onclick="play_next({{ track.id }})">play next</button>
