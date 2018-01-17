@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+
+{% block script %}
+<script.
+  function init_service(){
+    service.useService(http://localhost:5000/players,"PlayersService");
+  }
+</script>
+{% endblock %}
+
+{% block body %}
+<h2>JavaScript Tutorial</h2>
+
+<button type="button" onclick="document.getElementById('players').innerHTML = Date()">
+Click me
+</button>
+
+<p id="players"/>
+
+<button type="button" onclick="document.getElementById('demo').innerHTML = Date()">
+Click me to display the time and date
+</button>
+
+<p id="demo"/>
+
+{% endblock %}

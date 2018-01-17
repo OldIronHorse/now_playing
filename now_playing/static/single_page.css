@@ -1,19 +1,26 @@
 *         { box-sizing: border-box }
 body      { margin: 0; font-family: sans-serif; background: #eee; } 
-
-.info div, .control { float: left; padding: 5px }
-.info { clear: left}
-.control div { text-align: right }
+/*
+.location, .title, .album, .artist, .volume { float: left; padding: 5px }
+.playback { float: left; padding: 5px; clear: left }
+.player { clear: left; float: left}
 .playlist, .row { clear: left }
+*/
 
-.players .player  { background-color: lightblue }
-.players  { background-color: grey }
+.player { background-color: lightblue; width: 100% }
+.playlist  { background-color: grey }
 .library  { background-color: lightgrey }
 
 .column         { float: left; padding: 10px }
-.column.players { width: 40% }
+.column.playlist { width: 40% }
 .column.library { width: 60% }
 
 @media (max-width:600px){
-  .column.players, .column.library { width: 100% }
+  .column.playlist, .column.library { width: 100% }
 }
+
+/* table-like alignment */
+
+.players-list { display: table; width: 100% }
+.player { display: table-row }
+.playback, .volume, .location, .title, .album, .artist { display: table-cell; padding: 5px }
