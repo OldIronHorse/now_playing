@@ -1,0 +1,19 @@
+*         { box-sizing: border-box }
+body      { margin: 0; font-family: sans-serif; background: #eee; } 
+
+.info div, .control { float: left; padding: 5px }
+.info { clear: left}
+.control div { text-align: right }
+.playlist, .row { clear: left }
+
+.players .player  { background-color: lightblue }
+.players  { background-color: grey }
+.library  { background-color: lightgrey }
+
+.column         { float: left; padding: 10px }
+.column.players { width: 40% }
+.column.library { width: 60% }
+
+@media (max-width:600px){
+  .column.players, .column.library { width: 100% }
+}

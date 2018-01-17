@@ -16,52 +16,7 @@ app.config.update(dict(
   PASSWORD='password'))
 app.config.from_envvar('NOW_PLAYING_SETTINGS', silent=True)
 
-@app.route('/')
-def show_players():
-  server = connect(app.config['SERVER'])
-  players = get_players(server)
-  server.close()
-  return render_template('show_players.html', players=players)
-
-@app.route('/login', methods=['GET','POST'])
-def login():
-  error = None
-  if request.method == 'POST':
-    if request.form['username'] != app.config['USERNAME'] \
-        or request.form['password'] != app.config['PASSWORD']:
-      error = 'Invalid credentials'
-    else:
-      session['logged_in'] = True
-      flash('You are logged in')
-      return redirect(url_for('show_players'))
-  return render_template('login.html', error=error)
-
-@app.route('/logout')
-def logout():
-  session.pop('logged_in',None)
-  flash('You were logged out')
-  return redirect(url_for('show_players'))
-
-@app.route('/player/<player_id>')
-def player(player_id):
-  action = request.args.get('action')
-  if action:
-    actions = {'play': play, 'pause': pause}
-    server = connect(app.config['SERVER'])
-    actions[action](server, player_id)
-    server.close()
-    return redirect(url_for('player', player_id=player_id))
-  else:
-    server = connect(app.config['SERVER'])
-    name = get_player_name(server, player_id)
-    track = get_playing_track(server, player_id)
-    player_state = state(server, player_id)
-    playlist = get_current_playlist(server, player_id)
-    server.close()
-    available_action = {'play': 'pause', 'pause': 'play', 'stop': 'play'}
-    return render_template('player.html', track=track, player_name=name,
-      player_id=player_id, action=available_action[player_state],
-      playlist=playlist)
+### start multipage site ###
 
 @app.route('/mqtt')
 def mqtt_poc():
@@ -155,8 +110,16 @@ def new_music_page():
   albums = get_albums(server, sort='new')
   server.close()
   return render_template('new_music.html', albums=albums)
+
+### Start single page app ###
+
+@app.route('/')
+def single_page_app():
+  return render_template('single_page.html',
+                          mqtt_broker_host=app.config['MQTT_BROKER_HOST'],
+                          mqtt_broker_port=app.config['MQTT_BROKER_PORT'])
   
-### Start service POC ###
+### Start web services ###
 
 @app.route('/players/<player_id>', methods=['GET','PATCH'])
 def player_state(player_id):

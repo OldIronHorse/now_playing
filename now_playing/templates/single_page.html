@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='single_page.css') }}"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+  <script> //TODO: extract script to static file (with versioning to force reload)
+    var mqtt;
+    var reconnectTimeout = 2000;
+    var host = "{{ mqtt_broker_host }}";
+    var port = {{ mqtt_broker_port }};
+
+    function onConnect(){
+      console.log("Connected");
+      mqtt.subscribe("squeezebox/players/+");
+      // TODO: replace *-get with web service call?
+      var message = new Paho.MQTT.Message("");
+      message.destinationName = "squeezebox/players-get";
+      mqtt.send(message);
+    }
+
+    function onFailure(msg){
+      console.log("Connection attempt to " + host + ":" + port + " failed.");
+      setTimeout(MQTTconnect, reconnectTimeout);
+    }
+
+    function onMessageArrived(msg){
+      console.log("Message received on topic: ", msg.destinationName);
+      var topic = msg.destinationName.split('/');
+      if(topic[0] == 'squeezebox'){
+        var json_msg = JSON.parse(msg.payloadString);
+        if(topic[1] == 'players'){
+          renderPlayer(json_msg);
+        }
+      }
+    }
+
+    function renderPlayer(json_player){
+      console.log("Player to render:", json_player)
+    }
+
+    function MQTTConnect(){
+      console.log("Connecting to {{ mqtt_broker_host }}:{{ mqtt_bocker_port }}...");
+      mqtt = new Paho.MQTT.Client(host, port, "js-single-page"); //TODO: make the name unique
+      var options = {
+        timeout: 3,
+        onSuccess: onConnect,
+        onFailure: onFailure,
+      };
+      mqtt.onMessageArrived = onMessageArrived;
+      mqtt.connect(options);
+    }
+    
+  </script>
+  <head>
+    <title>Now Playing...</title>
+  </head>
+  <body>
+    <script>
+      MQTTConnect();
+    </script>
+    <div class=page>
+      <div class="players">
+        <h1>Players</h1>
+        <div class=player>
+          <div class=info>
+            <div class=location>Dining Room</div>
+            <div class=title>Another Long Night</div>
+            <div class=artist>Seth Lakeman</div>
+            <div class=album>Word of Mouth</div>
+          </div>
+          <div class=control>
+            <button type=button>|&lt;</button>
+            <button type=button>play</button>
+            <button type=button>&gt;|</button>
+          </div>
+        </div>
+        <div class=player>
+          <div class=info>
+            <div class="location">Kitchen</div>
+            <div class="title">What Ive Done</div>
+            <div class="artist">Linkin Park</div>
+            <div class="album">Radio X London</div>
+          </div>
+          <div class=control>
+            <button type=button>|&lt;</button>
+            <button type=button>play</button>
+            <button type=button>&gt;|</button>
+          </div>
+        </div>
+        <div class=player>
+          <div class=info>
+            <div class="location">Lounge</div>
+            <div class="title">Rolling in the Deep</div>
+            <div class="artist">Adele</div>
+            <div class="album">21</div>
+          </div>
+          <div class=control>
+            <button type=button>|&lt;</button>
+            <button type=button>play</button>
+            <button type=button>&gt;|</button>
+          </div>
+        </div>
+      </div>
+      <div class=row>
+        <div class="column players">
+          <div class=playlist>
+            <h1>Playlist</h1>
+            <p>
+              Track1 Album Artist<br/>
+              Track2 Album Artist<br/>
+              Track3 Album Artist<br/>
+              Track4 Album Artist<br/>
+              Track5 Album Artist<br/>
+              Track6 Album Artist<br/>
+              Track7 Album Artist<br/>
+              Track8 Album Artist<br/>
+              Track9 Album Artist<br/>
+              Track10 Album Artist<br/>
+            </p>
+          </div>
+        </div>
+        <div class="column library">
+          <h1>Library</h1>
+          <p>
+            Artists<br/>
+            Albums<br/>
+            Tracks<br/>
+            Years<br/>
+            New Music<br/>
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
