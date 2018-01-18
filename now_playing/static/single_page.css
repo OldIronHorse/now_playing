@@ -19,8 +19,11 @@ body      { margin: 0; font-family: sans-serif; background: #eee; }
   .column.playlist, .column.library { width: 100% }
 }
 
+.current { background-color: lightgrey; font-weight: bold }
+.played { color: white }
+
 /* table-like alignment */
 
-.players-list { display: table; width: 100% }
-.player { display: table-row }
-.playback, .volume, .location, .title, .album, .artist { display: table-cell; padding: 5px }
+.players-list, .playlist { display: table; width: 100% }
+.player, .track { display: table-row }
+.index, .playback, .volume, .location, .title, .album, .artist { display: table-cell; padding: 5px }
