@@ -2,7 +2,8 @@ from flask import Flask, jsonify, render_template, request, session, redirect,\
   url_for, flash
 from juice import connect, get_players, get_playing_track, get_artists, state,\
   play, pause, get_player_name, get_current_playlist, get_player_volume,\
-  set_player_volume, get_albums, get_tracks, get_genres, get_years
+  set_player_volume, get_albums, get_tracks, get_genres, get_years,\
+  player_playlist_play
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -121,65 +122,47 @@ def single_page_app():
   
 ### Start web services ###
 
-@app.route('/players/<player_id>', methods=['GET','PATCH'])
-def player_state(player_id):
-  server = connect(app.config['SERVER'])
-  if request.method == 'PATCH':
-    new_state = request.get_json()
-    actions = {'play': play, 'pause': pause}
-    try:
-      actions[new_state['state']](server, player_id)
-    except KeyError:
-      pass
-    try:
-      set_player_volume(server, player_id, new_state['volume'])
-    except KeyError:
-      pass
-  player_name = get_player_name(server, player_id)
-  current_track = get_playing_track(server, player_id)
-  player_state = state(server, player_id)
-  player_volume = get_player_volume(server, player_id)
-  server.close()
-  return jsonify({'state': player_state,
-                  'volume': player_volume,
-                  'name': player_name,
-                  'id': player_id,
-                  'current_track':{'title': current_track.title,
-                                   'album': current_track.album,
-                                   'artist': current_track.artist}})
-    
-
-@app.route('/players')
-def players():
-  server = connect(app.config['SERVER'])
-  players = get_players(server)
-  server.close()
-  response = '';
-  for player in players:
-    response += '{}, {}\n'.format(player.name,player.id)
-  return response
-  
-@app.route('/players/count')
-def players_count():
-  server = connect(app.config['SERVER'])
-  players = get_players(server)
-  server.close()
-  return str(len(players))
-
-@app.route('/players/<name>/now_playing')
-def player_by_name(name):
-  server = connect(app.config['SERVER'])
-  players = [player for player in get_players(server) if player.name == name]
-  track = get_playing_track(server,players[0].id)
-  server.close()
-  return '{}, {}, {}'.format(track.title,track.album,track.artist)
-
-@app.route('/library/artists')
+@app.route('/api/library/artists')
 def library_artists():
   server = connect(app.config['SERVER'])
   artists = get_artists(server)
   server.close()
-  return jsonify([artist._asdict() for artist in artists])
+  return jsonify(artists)
+
+@app.route('/api/library/albums')
+def library_albums():
+  server = connect(app.config['SERVER'])
+  albums = get_albums(server, **{k: request.args[k] for k in request.args.keys()})
+  server.close()
+  return jsonify(albums)
+
+@app.route('/api/library/albums/<album_id>')
+def library_album_by_id(album_id):
+  server = connect(app.config['SERVER'])
+  albums = get_albums(server, album_id=album_id)
+  server.close()
+  return jsonify(albums[0])
+
+@app.route('/api/library/tracks')
+def library_tracks():
+  server = connect(app.config['SERVER'])
+  tracks = get_tracks(server, **{k: request.args[k] for k in request.args.keys()})
+  server.close()
+  return jsonify(tracks)
+
+@app.route('/api/players/<player_id>/playlist/play', methods=['POST'])
+def player_playlist(player_id):
+  print('player_playlist:', request.get_json())
+  type = request.get_json()['type']
+  id = request.get_json()['id']
+  server = connect(app.config['SERVER'])
+  track = get_tracks(server, page_size=1, track_id=id)[0]
+  print('player_playlist: track:', track)
+  player_playlist_play(server, player_id, track['url'])
+  server.close()
+  #TODO: return updated playlist?
+  return 'OK'
+  
 
 #TODO:html interface
 #TODO:js interface?

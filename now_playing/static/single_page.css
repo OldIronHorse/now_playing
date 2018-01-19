@@ -7,7 +7,7 @@ body      { margin: 0; font-family: sans-serif; background: #eee; }
 .playlist, .row { clear: left }
 */
 
-.player { background-color: lightblue; width: 100% }
+.players { background-color: lightblue; width: 100% }
 .playlist  { background-color: grey }
 .library  { background-color: lightgrey }
 
@@ -22,8 +22,11 @@ body      { margin: 0; font-family: sans-serif; background: #eee; }
 .current { background-color: lightgrey; font-weight: bold }
 .played { color: white }
 
+.library .breadcrumb { font-weight: bold }
+.library a:hover { color: blue; cursor: pointer }
+
 /* table-like alignment */
 
-.players-list, .playlist { display: table; width: 100% }
+.players-list, .playlist, .track-list { display: table; width: 100% }
 .player, .track { display: table-row }
 .index, .playback, .volume, .location, .title, .album, .artist { display: table-cell; padding: 5px }

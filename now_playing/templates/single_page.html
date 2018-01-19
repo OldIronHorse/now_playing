@@ -2,11 +2,15 @@
 <html lang="en">
   <link rel=stylesheet type=text/css href="{{ url_for('static', filename='single_page.css') }}"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+  <!--<script type"text/javascript" src="{{ url_for('static', filename='squeezebox_mqtt.js') }}"/>-->
   <script> //TODO: extract script to static file (with versioning to force reload)
     var mqtt;
     var reconnectTimeout = 2000;
     var host = "{{ mqtt_broker_host }}";
     var port = {{ mqtt_broker_port }};
+    
+    //TODO: replace getElementById lookups with globals for fixed elements?
+    var selected_player_id = null;
 
     function onConnect(){
       console.log("Connected");
@@ -91,6 +95,7 @@
 
     function player_selected(player_id){
       console.log("player_selected:", player_id);
+      selected_player_id = player_id;
       var playlists = document.getElementById("playlists");
       var playlist_elements = playlists.getElementsByClassName("playlist");
       for(var i = 0; i < playlist_elements.length; i++){
@@ -173,6 +178,139 @@
       mqtt.onMessageArrived = onMessageArrived;
       mqtt.connect(options);
     }
+
+    function add_breadcrumb(text, onclick_handler){
+      console.log("add_breadcrumb:", text, onclick_handler);
+      var breadcrumbs = document.getElementById("library-breadcrumb");
+      breadcrumbs.innerHTML += " &gt; ";
+      var breadcrumb = document.createElement("a");
+      breadcrumb.innerHTML = text;
+      breadcrumb.onclick = onclick_handler;
+      breadcrumbs.appendChild(breadcrumb);
+    }
+
+    function library_artists(){
+      console.log("library_artists");
+      var div_artists = document.getElementById("library-artists");
+      if(!div_artists || (div_artists.style.display == "none")){
+        library_hide_content();
+        add_breadcrumb("Artists", library_artists);
+        if(div_artists){
+          div_artists.style.display = null;
+        }else{
+          var library = document.getElementById("library-content");
+          div_artists = document.createElement("div");
+          div_artists.id = "library-artists";
+          library.appendChild(div_artists);
+          var request = new XMLHttpRequest();
+          request.onload = function(){ add_artists(div_artists, JSON.parse(request.responseText)); }
+          request.open("GET", "/api/library/artists", true);
+          request.setRequestHeader("Content-Type", "application/json");
+          request.send();
+        }
+      }
+    }
+
+    function add_artists(div_artists, json_artists){
+      console.log("add_artists:", json_artists);
+      for(var i = 0; i < json_artists.length; i++){
+        var div_artist = document.createElement("div");
+        div_artist.innerHTML = "<a onclick=\"library_artist_albums(" + json_artists[i].id + ", '" + json_artists[i].name + "')\">" + json_artists[i].name + "</a>"; 
+        div_artists.appendChild(div_artist);
+      }
+    }
+
+    function library_artist_albums(artist_id, artist_name){
+      console.log("library_artist_albumss:", artist_id, artist_name);
+      var div_artist_albums = document.getElementById("library-artist-" + artist_id + "-albums");
+      if(!div_artist_albums || (div_artist_albums.style.display == "none")){
+        library_hide_content();
+        add_breadcrumb(artist_name, function(){ library_artist_albums(artist_id, artist_name) });
+        if(div_artist_albums){
+          div_artist_albums.style.display = null;
+        }else{
+          var library = document.getElementById("library-content");
+          div_albums = document.createElement("div");
+          div_albums.id = "library-artist-" + artist_id + "-albums";
+          library.appendChild(div_albums);
+          var request = new XMLHttpRequest();
+          request.onload = function(){ add_artist_albums(div_albums, JSON.parse(request.responseText)); }
+          request.open("GET", "/api/library/albums?artist_id=" + artist_id, true);
+          request.setRequestHeader("Content-Type", "application/json");
+          request.send();
+        }
+      }
+    }
+
+    function add_artist_albums(div_albums, json_albums){
+      for(var i = 0; i < json_albums.length; i++){
+        var div_album = document.createElement("div");
+        div_album.innerHTML = "<a onclick=\"library_album_tracks(" + json_albums[i].id + ", '" + json_albums[i].name + "')\">" + json_albums[i].name + "</a>";
+        div_albums.appendChild(div_album);
+      }
+    }
+
+    function library_album_tracks(album_id, album_name){
+      var div_album_tracks = document.getElementById("library-album-" + album_id + "-tracks");
+      if(!div_album_tracks){
+        // create div & populate
+        var library = document.getElementById("library-content");
+        div_album_tracks = document.createElement("div");
+        div_album_tracks.id = "library-artist-" + album_id + "-albums";
+        div_album_tracks.className = "track-list";
+        library.appendChild(div_album_tracks);
+        var request = new XMLHttpRequest();
+        request.onload = function(){ add_album_tracks(div_album_tracks, JSON.parse(request.responseText)); }
+        request.open("GET", "/api/library/tracks?album_id=" + album_id, true);
+        request.setRequestHeader("Content-Type", "application/json");
+          request.send();
+      }
+      library_hide_content();
+      div_album_tracks.style.display = null;
+      add_breadcrumb(album_name, function(){ library_album_tracks(album_id, album_name) });
+    }
+
+    function add_album_tracks(div_album_tracks, json_tracks){
+      console.log("add_album_tracks:", json_tracks);
+      for(var i = 0; i < json_tracks.length; i++){
+        var div_track = document.createElement("div");
+        div_track.className = "track"
+        div_track.innerHTML = 
+          "<div class='title'>" + json_tracks[i].title + "</div>" +
+          "<div class=playback>" +
+            "<button type=button title='Play' onclick='playlist_play(\"track\", " + json_tracks[i].id + ")'>&gt;</button>" +
+            "<button type=button title='Add to playlist'>+</button>" +
+          "</div>";
+        div_album_tracks.appendChild(div_track);
+      }
+    }
+
+    function library_hide_content(){
+      var library_contents = document.getElementById("library-content").children;
+      for(var i = 0; i < library_contents.length; i++){
+        library_contents[i].style.display = "none";
+      }
+    }
+
+    function library_home(){
+      library_hide_content();
+      document.getElementById("library-categories").style.display = null;
+      var breadcrumbs = document.getElementById("library-breadcrumb");
+      while(breadcrumbs.lastChild.className != "breadcrumb-root"){
+        breadcrumbs.removeChild(breadcrumbs.lastChild);
+      }
+    }
+
+    function playlist_play(type, id){
+      // find selected player
+      //var player_selector = document.querySelector("input[name='player-select']");
+      console.log("playlist_play:", type, id);
+      var request = new XMLHttpRequest();
+      request.open("POST", "/api/players/" + selected_player_id + "/playlist/play", true);
+      request.setRequestHeader("Content-Type", "application/json");
+      var json = JSON.stringify({type: type, id: id});
+      request.send(json);
+    }
     
   </script>
   <head>
@@ -183,7 +321,7 @@
       MQTTConnect();
     </script>
     <div class=page>
-      <div id="players-list"i class=player>
+      <div id="players-list"i class=players>
         <h1>Players</h1>
       </div>
       <div class=row>
@@ -192,14 +330,28 @@
           <div>Show played tracks<input type=checkbox id="show-played-tracks" onclick="show_hide_played()"/></div>
         </div>
         <div class="column library">
-          <h1>Library</h1>
-          <p>
-            Artists<br/>
-            Albums<br/>
-            Tracks<br/>
-            Years<br/>
-            New Music<br/>
-          </p>
+          <div id="library-breadcrumb" class="breadcrumb">
+            <a class="breadcrumb-root" onclick="library_home()">Categories</a>
+          </div>
+          <div id="library-content">
+            <div id="library-categories">       
+              <div>
+                <a class="category" onclick="library_artists()">Artists</a>
+              </div>
+              <div>
+                <a class="category" >Albums<a/>
+              </div>
+              <div>
+                <a class="category" >Tracks<a/>
+              </div>
+              <div>
+                <a class="category" >Years<a/>
+              </div>
+              <div>
+                <a class="category" >New Music<a/>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
