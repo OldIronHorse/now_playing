@@ -12,8 +12,8 @@ body      { margin: 0; font-family: sans-serif; background: #eee; }
 .library  { background-color: lightgrey }
 
 .column         { float: left; padding: 10px }
-.column.playlist { width: 40% }
-.column.library { width: 60% }
+.column.playlist { width: 50% }
+.column.library { width: 50% }
 
 @media (max-width:600px){
   .column.playlist, .column.library { width: 100% }
@@ -27,6 +27,6 @@ body      { margin: 0; font-family: sans-serif; background: #eee; }
 
 /* table-like alignment */
 
-.players-list, .playlist, .track-list { display: table; width: 100% }
-.player, .track { display: table-row }
-.index, .playback, .volume, .location, .title, .album, .artist { display: table-cell; padding: 5px }
+.players-list, .playlist, .track-list, .album-list, .artist-list, .year-list { display: table; width: 100%; table-layout: fixed }
+.player, .track, .album-summary, .artist-summary, .year-summary { display: table-row }
+.index, .playback, .volume, .location, .title, .album, .artisti, .year { display: table-cell; padding: 5px }

@@ -3,7 +3,7 @@ from flask import Flask, jsonify, render_template, request, session, redirect,\
 from juice import connect, get_players, get_playing_track, get_artists, state,\
   play, pause, get_player_name, get_current_playlist, get_player_volume,\
   set_player_volume, get_albums, get_tracks, get_genres, get_years,\
-  player_playlist_play
+  player_playlist_control, player_playlist_delete
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -122,6 +122,8 @@ def single_page_app():
   
 ### Start web services ###
 
+  ### start library services ###
+
 @app.route('/api/library/artists')
 def library_artists():
   server = connect(app.config['SERVER'])
@@ -150,19 +152,41 @@ def library_tracks():
   server.close()
   return jsonify(tracks)
 
-@app.route('/api/players/<player_id>/playlist/play', methods=['POST'])
-def player_playlist(player_id):
-  print('player_playlist:', request.get_json())
-  type = request.get_json()['type']
-  id = request.get_json()['id']
+@app.route('/api/library/years')
+def library_years():
   server = connect(app.config['SERVER'])
-  track = get_tracks(server, page_size=1, track_id=id)[0]
-  print('player_playlist: track:', track)
-  player_playlist_play(server, player_id, track['url'])
+  years = get_years(server)
   server.close()
-  #TODO: return updated playlist?
+  return jsonify(years)
+
+  ### start player services ###
+
+type_to_id_tag = {
+  'track': 'track_id',
+  'album': 'album_id',
+  'artist': 'artist_id',
+}
+
+@app.route('/api/players/<player_id>/playlist/tracks', methods=['PUT','POST'])
+def player_playlist_tracks(player_id):
+  method_to_command = {
+    'PUT': 'load',
+    'POST': 'add',
+  }
+  json = request.get_json()
+  server = connect(app.config['SERVER'])
+  player_playlist_control(server, player_id, method_to_command[request.method],
+    **{type_to_id_tag[json['type']]: json['id']})
+  server.close()
   return 'OK'
-  
+
+@app.route('/api/players/<player_id>/playlist/tracks/<index>', methods=['DELETE'])
+def player_playlist_tracks_indexed(player_id, index):
+  server = connect(app.config['SERVER'])
+  player_playlist_delete(server, player_id, index)
+  server.close()
+  return 'OK'
+
 
 #TODO:html interface
 #TODO:js interface?

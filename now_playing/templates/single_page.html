@@ -87,7 +87,11 @@
           "<div class=index>" + json_player.playlist[track].index + "</div>" +
           "<div class=title>" + json_player.playlist[track].title + "</div>" +
           "<div class=album>" + album + "</div>" +
-          "<div class=artist>" + json_player.playlist[track].artist + "</div>";
+          "<div class=artist>" + json_player.playlist[track].artist + "</div>" +
+          "<div class=playback>" +
+            "<button type=button title='Remove' onclick='playlist_delete(\"" +
+              json_player.id + "\"," + json_player.playlist[track].index + ")'>x</button>" +
+          "</div>";
         playlist.appendChild(div_track);
       }
       show_hide_played();
@@ -136,7 +140,6 @@
         var title = document.createElement("div");
         title.id = "player-title-" + json_player.id;
         title.className = "title";
-        title.innerHTML = json_player.track;
         row_player.appendChild(title);
         var artist = document.createElement("div");
         artist.id = "player-artist-" + json_player.id;
@@ -152,6 +155,7 @@
       document.getElementById("player-volume-" + json_player.id).innerHTML = json_player.volume;
       document.getElementById("player-location-" + json_player.id).innerHTML = json_player.name;
       document.getElementById("player-artist-" + json_player.id).innerHTML = json_player.artist;
+      document.getElementById("player-title-" + json_player.id).innerHTML = json_player.track;
       if(json_player.album){
         document.getElementById("player-album-" + json_player.id).innerHTML = json_player.album;
       }else{
@@ -189,25 +193,43 @@
       breadcrumbs.appendChild(breadcrumb);
     }
 
-    function library_artists(){
-      console.log("library_artists");
-      var div_artists = document.getElementById("library-artists");
-      if(!div_artists || (div_artists.style.display == "none")){
+    function library_category(name, tag, url, fn_add){
+      console.log("library_category:", name, tag);
+      var div_category = document.getElementById("library-" + tag);
+      if(!div_category || (div_category.style.display == "none")){
         library_hide_content();
-        add_breadcrumb("Artists", library_artists);
-        if(div_artists){
-          div_artists.style.display = null;
+        add_breadcrumb(name, function(){ library_category(name, tag) });
+        if(div_category){
+          div_category.style.display = null;
         }else{
           var library = document.getElementById("library-content");
-          div_artists = document.createElement("div");
-          div_artists.id = "library-artists";
-          library.appendChild(div_artists);
+          div_category = document.createElement("div");
+          div_category.id = "library-" + tag;
+          div_category.className = tag + "-list";
+          library.appendChild(div_category);
           var request = new XMLHttpRequest();
-          request.onload = function(){ add_artists(div_artists, JSON.parse(request.responseText)); }
-          request.open("GET", "/api/library/artists", true);
+          request.onload = function(){ fn_add(div_category, JSON.parse(request.responseText)); }
+          request.open("GET", url, true);
           request.setRequestHeader("Content-Type", "application/json");
           request.send();
         }
+      }
+    }
+
+    function add_years(div_years, json_years){
+      console.log("add_years:", json_years);
+      for(var i = 0; i < json_years.length; i++){
+        var div_year = document.createElement("div");
+        div_year.className = "year-summary";
+        div_year.innerHTML = 
+          "<div class=year>" +
+            "<a onclick=\"library_year_albums(" + json_years[i] + ")\">" + json_years[i] + "</a>" +
+          "</div>" +
+          "<div class=playback>" +
+            "<button type=button title='Play' onclick='playlist_play(\"year\", " + json_years[i] + ")'>&gt;</button>" +
+            "<button type=button title='Add to playlist' onclick='playlist_add(\"year\", " + json_years[i] + ")'>+</button>" +
+          "</div>";
+        div_years.appendChild(div_year);
       }
     }
 
@@ -215,7 +237,15 @@
       console.log("add_artists:", json_artists);
       for(var i = 0; i < json_artists.length; i++){
         var div_artist = document.createElement("div");
-        div_artist.innerHTML = "<a onclick=\"library_artist_albums(" + json_artists[i].id + ", '" + json_artists[i].name + "')\">" + json_artists[i].name + "</a>"; 
+        div_artist.className = "artist-summary";
+        div_artist.innerHTML = 
+          "<div class=artist>" +
+            "<a onclick=\"library_artist_albums(" + json_artists[i].id + ", '" + json_artists[i].name + "')\">" + json_artists[i].name + "</a>" +
+          "</div>" +
+          "<div class=playback>" +
+            "<button type=button title='Play' onclick='playlist_play(\"artist\", " + json_artists[i].id + ")'>&gt;</button>" +
+            "<button type=button title='Add to playlist' onclick='playlist_add(\"artist\", " + json_artists[i].id + ")'>+</button>" +
+          "</div>";
         div_artists.appendChild(div_artist);
       }
     }
@@ -232,9 +262,10 @@
           var library = document.getElementById("library-content");
           div_albums = document.createElement("div");
           div_albums.id = "library-artist-" + artist_id + "-albums";
+          div_albums.className = "album-list";
           library.appendChild(div_albums);
           var request = new XMLHttpRequest();
-          request.onload = function(){ add_artist_albums(div_albums, JSON.parse(request.responseText)); }
+          request.onload = function(){ add_albums(div_albums, JSON.parse(request.responseText), false); }
           request.open("GET", "/api/library/albums?artist_id=" + artist_id, true);
           request.setRequestHeader("Content-Type", "application/json");
           request.send();
@@ -242,10 +273,25 @@
       }
     }
 
-    function add_artist_albums(div_albums, json_albums){
+    function add_albums(div_albums, json_albums, show_artist=true){
       for(var i = 0; i < json_albums.length; i++){
         var div_album = document.createElement("div");
-        div_album.innerHTML = "<a onclick=\"library_album_tracks(" + json_albums[i].id + ", '" + json_albums[i].name + "')\">" + json_albums[i].name + "</a>";
+        div_album.className="album-summary";
+        div_album.innerHTML = 
+          "<div class='title'>" +
+            "<a onclick=\"library_album_tracks(" + json_albums[i].id + ", '" + json_albums[i].name + "')\">" + json_albums[i].name + "</a>" +
+          "</div>";
+        if(show_artist){
+          div_album.innerHTML += 
+            "<div class='artist'>" +
+              "<a onclick=\"library_artist_albums(" + json_albums[i].artist_id + ", '" + json_albums[i].artist + "')\">" + json_albums[i].artist + "</a>" +
+            "</div>";
+        }
+        div_album.innerHTML += 
+          "<div class=playback>" +
+            "<button type=button title='Play' onclick='playlist_play(\"album\", " + json_albums[i].id + ")'>&gt;</button>" +
+            "<button type=button title='Add to playlist' onclick='playlist_add(\"album\", " + json_albums[i].id + ")'>+</button>" +
+          "</div>";
         div_albums.appendChild(div_album);
       }
     }
@@ -261,7 +307,7 @@
         library.appendChild(div_album_tracks);
         var request = new XMLHttpRequest();
         request.onload = function(){ add_album_tracks(div_album_tracks, JSON.parse(request.responseText)); }
-        request.open("GET", "/api/library/tracks?album_id=" + album_id, true);
+        request.open("GET", "/api/library/tracks?sort=tracknum&album_id=" + album_id, true);
         request.setRequestHeader("Content-Type", "application/json");
           request.send();
       }
@@ -276,10 +322,11 @@
         var div_track = document.createElement("div");
         div_track.className = "track"
         div_track.innerHTML = 
+          "<div class='title'>" + json_tracks[i].tracknum + "</div>" +
           "<div class='title'>" + json_tracks[i].title + "</div>" +
           "<div class=playback>" +
             "<button type=button title='Play' onclick='playlist_play(\"track\", " + json_tracks[i].id + ")'>&gt;</button>" +
-            "<button type=button title='Add to playlist'>+</button>" +
+            "<button type=button title='Add to playlist' onclick='playlist_add(\"track\", " + json_tracks[i].id + ")'>+</button>" +
           "</div>";
         div_album_tracks.appendChild(div_track);
       }
@@ -302,14 +349,26 @@
     }
 
     function playlist_play(type, id){
-      // find selected player
-      //var player_selector = document.querySelector("input[name='player-select']");
-      console.log("playlist_play:", type, id);
       var request = new XMLHttpRequest();
-      request.open("POST", "/api/players/" + selected_player_id + "/playlist/play", true);
+      request.open("PUT", "/api/players/" + selected_player_id + "/playlist/tracks", true);
       request.setRequestHeader("Content-Type", "application/json");
       var json = JSON.stringify({type: type, id: id});
       request.send(json);
+    }
+
+    function playlist_add(type, id){
+      var request = new XMLHttpRequest();
+      request.open("POST", "/api/players/" + selected_player_id + "/playlist/tracks", true);
+      request.setRequestHeader("Content-Type", "application/json");
+      var json = JSON.stringify({type: type, id: id});
+      request.send(json);
+    }
+
+    function playlist_delete(player_id, index){
+      var request = new XMLHttpRequest();
+      request.open("DELETE", "/api/players/" + player_id + "/playlist/tracks/" + index, true);
+      request.setRequestHeader("Content-Type", "application/json");
+      request.send(JSON.stringify({index: index}));
     }
     
   </script>
@@ -321,7 +380,7 @@
       MQTTConnect();
     </script>
     <div class=page>
-      <div id="players-list"i class=players>
+      <div id="players-list" class=players>
         <h1>Players</h1>
       </div>
       <div class=row>
@@ -336,19 +395,16 @@
           <div id="library-content">
             <div id="library-categories">       
               <div>
-                <a class="category" onclick="library_artists()">Artists</a>
+                <a class="category" onclick="library_category('Artists', 'artists', '/api/library/artists', add_artists)">Artists<a/>
               </div>
               <div>
-                <a class="category" >Albums<a/>
+                <a class="category" onclick="library_category('Albums', 'albums', '/api/library/albums', add_albums)">Albums<a/>
               </div>
               <div>
-                <a class="category" >Tracks<a/>
+                <a class="category" onclick="library_category('Years', 'years', '/api/library/years', add_years)">Years<a/>
               </div>
               <div>
-                <a class="category" >Years<a/>
-              </div>
-              <div>
-                <a class="category" >New Music<a/>
+                <a class="category" onclick="library_category('New Music', 'new-music', '/api/library/albums?sort=new', add_albums)">New Music<a/>
               </div>
             </div>
           </div>
