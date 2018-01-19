@@ -65,7 +65,9 @@
         var playlist = document.createElement("div");
         playlist.id = "playlist-" + json_player.id;
         playlist.className = "playlist";
-        playlist.style.display = "none";
+        if(selected_player_id != json_player.id){
+          playlist.style.display = "none";
+        }
         all_playlists.appendChild(playlist);
       }
       var playlist = document.getElementById("playlist-" + json_player.id);
@@ -120,11 +122,18 @@
         table_players.appendChild(row_player);
         var playback = document.createElement("div");
         playback.className = "playback";
-        playback.innerHTML = 
-          "<input type=radio name=player-select onchange=\"player_selected('" + json_player.id + "')\"/>" +
+        var html = // TODO: invalid stuff is rejected. need to format the whole thing first!
+          "<input type=radio name=player-select onchange=\"player_selected('" + json_player.id + "')\"";
+        if(!selected_player_id){
+          selected_player_id = json_player.id;
+          html += " checked";
+        }
+        html += 
+          "/>" +
           "<button type=button onclick=\"player_command('" + json_player.id + "','track_previous')\">|&lt;</button>" +
           "<button type=button id=\"play-pause-" + json_player.id + "\">...</button>" +
           "<button type=button onclick=\"player_command('" + json_player.id + "','track_next')\">&gt;|</button>";
+        playback.innerHTML += html;
         row_player.appendChild(playback);
         var volume = document.createElement("div");
         volume.className = "volume";
