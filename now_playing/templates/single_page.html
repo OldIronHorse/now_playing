@@ -183,14 +183,24 @@
       mqtt.connect(options);
     }
 
-    function add_breadcrumb(text, onclick_handler){
-      console.log("add_breadcrumb:", text, onclick_handler);
+    function add_breadcrumb(text, content_id){
+      console.log("add_breadcrumb:", text, content_id);
       var breadcrumbs = document.getElementById("library-breadcrumb");
-      breadcrumbs.innerHTML += " &gt; ";
       var breadcrumb = document.createElement("a");
-      breadcrumb.innerHTML = text;
-      breadcrumb.onclick = onclick_handler;
+      breadcrumb.innerHTML = text + " &gt; ";
+      breadcrumb.className = "library-breadcrumb-" + content_id;
+      breadcrumb.onclick = function(){ back_to_breadcrumb(content_id); };
       breadcrumbs.appendChild(breadcrumb);
+    }
+
+    function back_to_breadcrumb(content_id){
+      console.log("back_to_breadcrumb:", content_id);
+      library_hide_content();
+      document.getElementById(content_id).style.display = null;
+      var breadcrumbs = document.getElementById("library-breadcrumb");
+      while(breadcrumbs.lastChild.className != "library-breadcrumb-" + content_id){
+        breadcrumbs.removeChild(breadcrumbs.lastChild);
+      }
     }
 
     function library_category(name, tag, url, fn_add){
@@ -198,7 +208,7 @@
       var div_category = document.getElementById("library-" + tag);
       if(!div_category || (div_category.style.display == "none")){
         library_hide_content();
-        add_breadcrumb(name, function(){ library_category(name, tag) });
+        add_breadcrumb(name, "library-" + tag);
         if(div_category){
           div_category.style.display = null;
         }else{
@@ -251,11 +261,11 @@
     }
 
     function library_artist_albums(artist_id, artist_name){
-      console.log("library_artist_albumss:", artist_id, artist_name);
+      console.log("library_artist_albums:", artist_id, artist_name);
       var div_artist_albums = document.getElementById("library-artist-" + artist_id + "-albums");
       if(!div_artist_albums || (div_artist_albums.style.display == "none")){
         library_hide_content();
-        add_breadcrumb(artist_name, function(){ library_artist_albums(artist_id, artist_name) });
+        add_breadcrumb(artist_name, "library-artist-" + artist_id + "-albums");
         if(div_artist_albums){
           div_artist_albums.style.display = null;
         }else{
@@ -298,22 +308,25 @@
 
     function library_album_tracks(album_id, album_name){
       var div_album_tracks = document.getElementById("library-album-" + album_id + "-tracks");
-      if(!div_album_tracks){
-        // create div & populate
-        var library = document.getElementById("library-content");
-        div_album_tracks = document.createElement("div");
-        div_album_tracks.id = "library-artist-" + album_id + "-albums";
-        div_album_tracks.className = "track-list";
-        library.appendChild(div_album_tracks);
-        var request = new XMLHttpRequest();
-        request.onload = function(){ add_album_tracks(div_album_tracks, JSON.parse(request.responseText)); }
-        request.open("GET", "/api/library/tracks?sort=tracknum&album_id=" + album_id, true);
-        request.setRequestHeader("Content-Type", "application/json");
+      if(!div_album_tracks || (div_album_tracks.style.display == "none")){
+        library_hide_content();
+        add_breadcrumb(album_name, "library-album-" + album_id + "-tracks");
+        if(div_album_tracks){
+          div_album_tracks.style.display = null;
+        }else{
+          // create div & populate
+          var library = document.getElementById("library-content");
+          div_album_tracks = document.createElement("div");
+          div_album_tracks.id = "library-album-" + album_id + "-tracks";
+          div_album_tracks.className = "track-list";
+          library.appendChild(div_album_tracks);
+          var request = new XMLHttpRequest();
+          request.onload = function(){ add_album_tracks(div_album_tracks, JSON.parse(request.responseText)); }
+          request.open("GET", "/api/library/tracks?sort=tracknum&album_id=" + album_id, true);
+          request.setRequestHeader("Content-Type", "application/json");
           request.send();
+        }
       }
-      library_hide_content();
-      div_album_tracks.style.display = null;
-      add_breadcrumb(album_name, function(){ library_album_tracks(album_id, album_name) });
     }
 
     function add_album_tracks(div_album_tracks, json_tracks){
@@ -390,7 +403,7 @@
         </div>
         <div class="column library">
           <div id="library-breadcrumb" class="breadcrumb">
-            <a class="breadcrumb-root" onclick="library_home()">Categories</a>
+            <a class="breadcrumb-root" onclick="library_home()">Categories &gt; </a>
           </div>
           <div id="library-content">
             <div id="library-categories">       
