@@ -187,9 +187,11 @@ def player_playlist_tracks_indexed(player_id, index):
   server.close()
   return 'OK'
 
+### start AngularJS interface ###
+@app.route('/angular')
+def angular():
+  return render_template('angular.html')
 
-#TODO:html interface
-#TODO:js interface?
 
 #TODO: cache library at startup and cache in python dictionaries
 #TODO: index library cache

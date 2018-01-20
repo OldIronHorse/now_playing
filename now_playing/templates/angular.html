@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+  <body>
+  <script>
+    var app = angular.module("myApp", []);
+
+    app.config(['$interpolateProvider', function($interpolateProvider) {
+      $interpolateProvider.startSymbol('{a');
+        $interpolateProvider.endSymbol('a}');
+        }]);
+
+    app.controller("myCtrl", function($scope){
+      $scope.firstName = "John";
+      $scope.lastName = "Doe";
+    });
+  </script>
+
+    <div ng-app="myApp" ng-controller="myCtrl">
+      First name:<input type="text" ng-model="firstName"/><br/>
+      Last name:<input type="text" ng-model="lastName"/><br/>
+      <br/>
+      Fullname:{a firstName + " " + lastName a}
+      <p ng-model="firstName"/>
+      {a lastName a}
+    </div>
+
+  </body>
+</html>
