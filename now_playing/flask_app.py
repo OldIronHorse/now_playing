@@ -1,11 +1,13 @@
 from flask import Flask, jsonify, render_template, request, session, redirect,\
   url_for, flash
+from flask_cors import CORS
 from juice import connect, get_players, get_playing_track, get_artists, state,\
   play, pause, get_player_name, get_current_playlist, get_player_volume,\
   set_player_volume, get_albums, get_tracks, get_genres, get_years,\
   player_playlist_control, player_playlist_delete
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_object(__name__)
 
 app.config.update(dict(
@@ -131,11 +133,19 @@ def library_artists():
   server.close()
   return jsonify(artists)
 
+@app.route('/api/library/artists/<id>')
+def library_artist_by_id(id):
+  server = connect(app.config['SERVER'])
+  artists = get_artists(server, artist_id=id)
+  server.close()
+  return jsonify(artists[0])
+
 @app.route('/api/library/albums')
 def library_albums():
   server = connect(app.config['SERVER'])
   albums = get_albums(server, **{k: request.args[k] for k in request.args.keys()})
   server.close()
+  #print('library_albums()', albums)
   return jsonify(albums)
 
 @app.route('/api/library/albums/<album_id>')
@@ -143,6 +153,7 @@ def library_album_by_id(album_id):
   server = connect(app.config['SERVER'])
   albums = get_albums(server, album_id=album_id)
   server.close()
+  #print('library_album_by_id(', album_id, ')', albums[0])
   return jsonify(albums[0])
 
 @app.route('/api/library/tracks')
@@ -150,6 +161,7 @@ def library_tracks():
   server = connect(app.config['SERVER'])
   tracks = get_tracks(server, **{k: request.args[k] for k in request.args.keys()})
   server.close()
+  #print('library_tracks:', tracks)
   return jsonify(tracks)
 
 @app.route('/api/library/years')
@@ -186,12 +198,6 @@ def player_playlist_tracks_indexed(player_id, index):
   player_playlist_delete(server, player_id, index)
   server.close()
   return 'OK'
-
-### start AngularJS interface ###
-@app.route('/angular')
-def angular():
-  return render_template('angular.html')
-
 
 #TODO: cache library at startup and cache in python dictionaries
 #TODO: index library cache
