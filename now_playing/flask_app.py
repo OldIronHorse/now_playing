@@ -153,7 +153,7 @@ def library_album_by_id(album_id):
   server = connect(app.config['SERVER'])
   albums = get_albums(server, album_id=album_id)
   server.close()
-  #print('library_album_by_id(', album_id, ')', albums[0])
+  print('library_album_by_id(', album_id, ')', albums[0])
   return jsonify(albums[0])
 
 @app.route('/api/library/tracks')
