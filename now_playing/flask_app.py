@@ -4,7 +4,7 @@ from flask_cors import CORS
 from juice import connect, get_players, get_playing_track, get_artists, state,\
   play, pause, get_player_name, get_current_playlist, get_player_volume,\
   set_player_volume, get_albums, get_tracks, get_genres, get_years,\
-  player_playlist_control, player_playlist_delete
+  player_playlist_control, player_playlist_delete, status
 
 app = Flask(__name__)
 CORS(app)
@@ -179,6 +179,13 @@ type_to_id_tag = {
   'artist': 'artist_id',
 }
 
+@app.route('/api/players')
+def players():
+  server = connect(app.config['SERVER'])
+  players = get_players(server)
+  server.close()
+  return jsonify(players)
+
 @app.route('/api/players/<player_id>/playlist/tracks', methods=['PUT','POST'])
 def player_playlist_tracks(player_id):
   method_to_command = {
@@ -189,15 +196,16 @@ def player_playlist_tracks(player_id):
   server = connect(app.config['SERVER'])
   player_playlist_control(server, player_id, method_to_command[request.method],
     **{type_to_id_tag[json['type']]: json['id']})
+  new_player_status = status(server, player_id)['player']
   server.close()
-  return 'OK'
+  return jsonify(new_player_status['playlist'])
 
 @app.route('/api/players/<player_id>/playlist/tracks/<index>', methods=['DELETE'])
 def player_playlist_tracks_indexed(player_id, index):
   server = connect(app.config['SERVER'])
   player_playlist_delete(server, player_id, index)
   server.close()
-  return 'OK'
+  return ('', 204)
 
 #TODO: cache library at startup and cache in python dictionaries
 #TODO: index library cache
