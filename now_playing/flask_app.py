@@ -4,7 +4,8 @@ from flask_cors import CORS
 from juice import connect, get_players, get_playing_track, get_artists, state,\
   play, pause, get_player_name, get_current_playlist, get_player_volume,\
   set_player_volume, get_albums, get_tracks, get_genres, get_years,\
-  player_playlist_control, player_playlist_delete, status
+  player_playlist_control, player_playlist_delete, status, previous_track,\
+  next_track
 
 app = Flask(__name__)
 CORS(app)
@@ -185,6 +186,50 @@ def players():
   players = get_players(server)
   server.close()
   return jsonify(players)
+
+@app.route('/api/players/<player_id>')
+def player(player_id):
+  server = connect(app.config['SERVER'])
+  players = status(server, player_id)
+  server.close()
+  return jsonify(players)
+
+modes = {
+  'play': play,
+  'pause': pause,
+}
+@app.route('/api/players/<player_id>/mode', methods=['PUT'])
+def player_mode(player_id):  
+  json = request.get_json()
+  print('player_mode:', request)
+  print('player_mode:', json)
+  server = connect(app.config['SERVER'])
+  modes[json['mode']](server, player_id)
+  server.close()
+  return ('', 204)
+
+@app.route('/api/players/<player_id>/volume', methods=['PUT'])
+def player_volume(player_id):
+  json = request.get_json()
+  print('player_mode:', request)
+  print('player_mode:', json)
+  server = connect(app.config['SERVER'])
+  set_player_volume(server, player_id, '{0:+}'.format(json['delta']))
+  server.close()
+  return ('', 204)
+  
+@app.route('/api/players/<player_id>/playlist_current_index', methods=['PUT'])
+def player_playlist_current_index(player_id):
+  json = request.get_json()
+  print('player_mode:', request)
+  print('player_mode:', json)
+  server = connect(app.config['SERVER'])
+  if json['delta'] < 0:
+    previous_track(server, player_id)
+  elif json['delta'] > 0:
+    next_track(server, player_id)
+  server.close()
+  return ('', 204)
 
 @app.route('/api/players/<player_id>/playlist/tracks', methods=['PUT','POST'])
 def player_playlist_tracks(player_id):
