@@ -146,7 +146,7 @@ def library_albums():
   server = connect(app.config['SERVER'])
   albums = get_albums(server, **{k: request.args[k] for k in request.args.keys()})
   server.close()
-  #print('library_albums()', albums)
+  print('library_albums()', jsonify(albums).data[16500:16700])
   return jsonify(albums)
 
 @app.route('/api/library/albums/<album_id>')
