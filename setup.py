@@ -10,6 +10,7 @@ setup(name='now_playing',
       packages=['now_playing'],
       install_requires=[
         'flask',
+        'flask-cors',
         'juice'
       ],
       test_suite='nose.collector',
